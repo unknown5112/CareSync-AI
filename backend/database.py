@@ -1,11 +1,17 @@
+import functools
 import os
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
 load_dotenv()
 
-SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+
+@functools.lru_cache(maxsize=8)
+def get_supabase_credentials():
+    """Cached accessor for Supabase credentials."""
+    url = os.getenv("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_ANON_KEY", "")
+    return url, key
 
 
 def get_supabase_client() -> Client:
@@ -13,16 +19,18 @@ def get_supabase_client() -> Client:
     Initializes and returns a Supabase client instance.
     Raises ValueError if required credentials are not found in the environment.
     """
-    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    url, key = get_supabase_credentials()
+    if not url or not key:
         raise ValueError(
             "SUPABASE_URL or SUPABASE_ANON_KEY environment variable is not set. "
             "Please check your .env configuration."
         )
-    return create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    return create_client(url, key)
 
 
 # Lazy-loaded client instance or instantiated on demand
 try:
-    supabase: Client = get_supabase_client() if SUPABASE_URL and SUPABASE_ANON_KEY else None
+    url, key = get_supabase_credentials()
+    supabase: Client = get_supabase_client() if url and key else None
 except Exception:
     supabase = None

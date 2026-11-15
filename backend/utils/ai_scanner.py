@@ -1,3 +1,4 @@
+import functools
 import io
 import json
 import os
@@ -12,9 +13,16 @@ from PIL import Image
 load_dotenv()
 
 
+@functools.lru_cache(maxsize=16)
+def get_cached_gemini_api_key() -> str:
+    """Cached accessor for GEMINI_API_KEY to eliminate redundant environment lookups."""
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    return api_key
+
+
 def get_gemini_client():
     """Configures and validates the Google Gemini API client."""
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = get_cached_gemini_api_key()
     if not api_key:
         raise ValueError(
             "GEMINI_API_KEY environment variable is missing. "

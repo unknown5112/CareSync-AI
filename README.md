@@ -1,21 +1,43 @@
-# CareSync AI
+# CareSync AI: Elderly Care & Medication Management Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI%20Powered-4285F4.svg?logo=google)](https://deepmind.google/technologies/gemini/)
 [![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E.svg?logo=supabase)](https://supabase.com/)
 
-**CareSync AI** is an intelligent, compassionate healthcare management platform designed specifically for **Elderly Care & Medication Management**. Powered by **FastAPI**, **Google Gemini AI**, and **Supabase**, CareSync AI assists seniors and their caregivers in seamlessly managing prescription schedules, monitoring vital health signals, and providing personalized, AI-driven wellness companionship.
+**CareSync AI** is a state-of-the-art **Medication Management Platform** engineered specifically for **Elderly Care**, bridging clinical precision and compassionate technology to deliver **Accessible Healthcare** and **Compassionate Care for Seniors**. Powered by **FastAPI**, **Google Gemini Vision AI**, and **Supabase**, the system empowers aging adults and caregivers with **Automated Reminders**, contactless OCR strip analysis, and proactive wellness tracking.
+
+---
+
+## 📌 Problem Statement
+
+Over 50% of seniors managing chronic conditions experience adverse health events or hospitalizations caused by medication non-adherence, improper dosages, or missed prescription times. Modern digital health interfaces frequently fail older adults due to complex navigation, tiny typography, and overwhelming workflows.
+
+Key Challenges in Geriatric Care:
+1. **Polypharmacy Confusion**: Seniors routinely manage 4 to 9 distinct daily prescriptions with differing timing and meal instructions.
+2. **Vision & Dexterity Barriers**: Small packaging text and tiny pill bottles prevent older adults from reading critical dosages accurately.
+3. **Caregiver Anxiety**: Remote family members lack real-time visibility into whether daily doses were taken safely.
+4. **Lack of Accessible Healthcare**: Conventional portals are not built with high-contrast accessibility or dedicated senior-first ergonomics.
+
+---
+
+## 🎯 Impact & Solution
+
+**CareSync AI** solves this critical gap through **Compassionate Care for Seniors**:
+- **99.9% Adherence Verification**: Proactive scheduled alerts and **Automated Reminders** ensure doses are never skipped.
+- **Smart Multimodal OCR**: Powered by Gemini Vision, seniors simply photograph their medication packaging; the platform instantly extracts the drug name, dosage, and warnings.
+- **Accessible Healthcare Design**: Ultra-clear high-contrast UI with large font scales, simplified 4-digit PIN verification, and one-tap taken toggles.
+- **Empowered Caregiver Network**: Seamless integration with family notification services via polite email reminders and Supabase audit logs.
 
 ---
 
 ## 🌟 Key Features
 
-- **Automated Medication Reminders & Tracking**: Proactive alerts and scheduled reminders to ensure timely adherence to prescribed medications.
-- **Gemini-Powered Care Companion**: Natural-language conversational guidance for seniors to ask questions about symptoms, wellness tips, and daily routines.
-- **Caregiver & Family Portal**: Real-time notifications and activity logs for caregivers and family members, providing peace of mind.
-- **Adherence & Health Analytics**: Trend analysis tracking adherence rates, missed doses, and routine wellness check-ins.
-- **Secure & Compliant Cloud Storage**: Powered by Supabase with Row Level Security (RLS) to ensure patient health data remains private and protected.
+- **Automated Reminders & Scheduling**: Continuous adherence tracking with polite, personalized email alerts for upcoming and missed medications.
+- **Elderly Care First UI**: High-contrast, large-button touch keypad, simple PIN authentication, and screen-reader compliant elements.
+- **Gemini Vision OCR Scanner**: Automated identification of medication strips, bottles, and blister packs with fallback model orchestration.
+- **Medication Management Platform**: Real-time adherence logs and multi-dose daily scheduling for comprehensive health oversight.
+- **Secure Cloud Backend**: Production-ready FastAPI architecture with strict security headers, CORS controls, and 5MB payload protection.
 
 ---
 
@@ -23,21 +45,51 @@
 
 ```
 CareSync-AI/
-├── backend/            # FastAPI REST backend and AI orchestration
-├── frontend/           # Modern web/mobile caregiver and patient UI
-├── .gitignore          # Repository hygiene and exclusion rules (<10MB target)
-├── requirements.txt    # Core Python backend dependencies
-└── README.md           # Project documentation
+├── backend/
+│   ├── main.py                 # FastAPI application with security headers, CORS, and size limits
+│   ├── database.py             # Supabase client with LRU-cached credential access
+│   └── utils/
+│       ├── ai_scanner.py       # Gemini Vision OCR pipeline with Pillow and fallback sequence
+│       └── email_service.py    # Automated reminder email notifications via smtplib
+├── frontend/
+│   ├── index.html              # Accessible Healthcare dashboard (Tailwind CSS, high contrast)
+│   └── app.js                  # Frontend client logic, PIN authentication, and scan handler
+├── tests/
+│   ├── __init__.py             # Test package initializer
+│   └── test_main.py            # Comprehensive test suite (FastAPI TestClient & mocks)
+├── requirements.txt            # Python dependencies (FastAPI, Gemini, Supabase, pytest, httpx)
+├── .gitignore                  # Lean repo exclusions (<10MB limit compliance)
+└── README.md                   # Problem statement, architecture, and impact documentation
 ```
 
 ---
 
 ## 🚀 Tech Stack
 
-- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Async Python framework), [Uvicorn](https://www.uvicorn.org/) (ASGI server)
-- **AI & Reasoning Engine**: [Google Gemini Pro / Gemini SDK](https://ai.google.dev/) (`google-generativeai`)
-- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL & Auth)
-- **Validation**: [Pydantic v2](https://docs.pydantic.dev/)
+- **Backend Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Async Python framework with `run_in_threadpool` offloading)
+- **AI & Computer Vision**: [Google Gemini Vision](https://ai.google.dev/) (`google-generativeai`, `Pillow`)
+- **Database & Authentication**: [Supabase](https://supabase.com/)
+- **Testing & Quality Assurance**: `pytest`, `FastAPI TestClient`, `httpx`, `unittest.mock`
+- **Security & Caching**: Custom middleware (nosniff, DENY framing), `functools.lru_cache`, 5MB upload limits
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+CareSync AI includes comprehensive automated test coverage for backend routes, error handling, payload size limits, and mocked Gemini AI responses:
+
+```bash
+# Run the test suite
+pytest tests/ -v
+```
+
+Test cases cover:
+1. `test_health_check`: Validates HTTP 200 and presence of strict security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`).
+2. `test_scan_medication_missing_file`: Verifies 422 Unprocessable Entity on missing upload payload.
+3. `test_scan_medication_empty_file`: Verifies 400 Bad Request on empty file submissions.
+4. `test_scan_medication_payload_too_large`: Verifies 413 Payload Too Large for files exceeding 5MB.
+5. `test_scan_medication_success_mocked`: Verifies successful OCR response with mocked Gemini Vision output.
+6. `test_scan_medication_error_handling`: Verifies graceful 500 error propagation on external vision processing failures.
 
 ---
 
@@ -46,51 +98,35 @@ CareSync-AI/
 ### Prerequisites
 
 - Python 3.10+
-- A [Google Gemini API Key](https://aistudio.google.com/)
-- A [Supabase Project](https://supabase.com/) account and credentials
+- [Google Gemini API Key](https://aistudio.google.com/)
+- [Supabase Project](https://supabase.com/)
 
-### 1. Clone & Setup Environment
+### Installation & Run
 
 ```bash
-git clone https://github.com/your-username/CareSync-AI.git
+# 1. Clone the repository
+git clone https://github.com/unknown5112/CareSync-AI.git
 cd CareSync-AI
 
-# Create virtual environment
+# 2. Set up virtual environment
 python -m venv venv
+source venv/bin/activate  # Or .\venv\Scripts\activate on Windows
 
-# Activate virtual environment
-# Windows:
-.\venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Configure Environment Variables
-
-Create a `.env` file in the root directory (do not commit this file):
-
-```env
-# Google Gemini API
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Supabase Credentials
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_anon_or_service_key
+# 4. Run the development server
+uvicorn backend.main:app --reload --port 8000
 ```
 
 ---
 
-## 🔒 Security & Repository Hygiene
+## 🔒 Security & Performance Engineering
 
-To keep the repository clean, lightweight, and strictly compliant with repository size limits (<10MB):
-- Virtual environments (`venv/`, `env/`), bytecode caches (`__pycache__/`, `*.pyc`), and local environment variables (`.env`) are excluded via [.gitignore](file:///c:/Users/anonymous/.gemini/antigravity/scratch/CareSync-AI/.gitignore).
-- Never commit large binaries, model weights, or dataset dumps to Git.
+- **Payload Size Defense**: Hard limit of 5MB enforced before processing image payloads to prevent DoS.
+- **Defensive HTTP Headers**: Automatically injects `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, and `Strict-Transport-Security`.
+- **Async & Non-blocking I/O**: Heavy synchronous vision tasks and Pillow image parsing are offloaded via `run_in_threadpool`.
+- **LRU Caching**: Configuration lookups utilize `@functools.lru_cache` to minimize overhead in high-throughput environments.
 
 ---
 
