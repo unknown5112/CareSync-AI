@@ -19,7 +19,7 @@ app = FastAPI(
 # Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production as needed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,24 +47,14 @@ async def scan_medication(
     file: UploadFile = File(..., description="Image file of the medication packaging or strip")
 ) -> Dict[str, Any]:
     """
-    Route for medication strip OCR and information extraction using Gemini AI.
+    Route for medication strip OCR and information extraction using Gemini Vision API.
+    Calls Gemini model directly and raises HTTP 500 on failure without mock fallbacks.
     """
     try:
         image_bytes = await file.read()
         mime_type = file.content_type or "image/jpeg"
 
-        # Check if GEMINI_API_KEY is configured
-        if os.getenv("GEMINI_API_KEY"):
-            scan_result = scan_medication_strip(image_bytes, mime_type=mime_type)
-        else:
-            # Informative fallback if key has not been added yet in local development
-            scan_result = {
-                "medication_name": "Atorvastatin Calcium (Demo)",
-                "suggested_dosage": "1 tablet daily at bedtime (10mg)",
-                "strength": "10 mg",
-                "instructions": "Take with water after dinner. Demo response - configure GEMINI_API_KEY in .env for live AI extraction.",
-                "confidence": "high",
-            }
+        scan_result = scan_medication_strip(image_bytes, mime_type=mime_type)
 
         return {
             "status": "success",
@@ -74,7 +64,7 @@ async def scan_medication(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing medication scan: {str(e)}",
+            detail=f"Gemini AI medication scan failed: {str(e)}",
         )
 
 

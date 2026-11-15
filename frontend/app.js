@@ -145,18 +145,8 @@ ocrForm.addEventListener("submit", async (e) => {
     const result = await response.json();
     displayScanResult(result);
   } catch (error) {
-    console.warn("API request failed or server not running. Rendering fallback preview:", error);
-    // Graceful fallback for offline or standalone UI presentation
-    displayScanResult({
-      status: "success",
-      data: {
-        medication_name: "Metformin Hydrochloride (Demo OCR)",
-        suggested_dosage: "500 mg - 1 tablet twice daily with meals",
-        strength: "500 mg",
-        instructions: "Swallow whole with a full glass of water. Do not crush or chew. Take with meals.",
-        confidence: "high"
-      }
-    });
+    console.error("Gemini AI scan failed:", error);
+    alert(`Medication scan error: ${error.message || "Failed to process image with Gemini AI. Please check server logs or API key."}`);
   } finally {
     btnScan.disabled = false;
     btnScanSpinner.classList.add("hidden");
