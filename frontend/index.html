@@ -3,40 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CareSync AI - Elderly Care & Medication Management</title>
+  <title>CareSync AI - Elderly Care & Medication Management Platform</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* High contrast focus ring and accessible typography */
+    /* WCAG 2.1 AAA Accessibility Styles */
     :focus-visible {
       outline: 4px solid #0284c7 !important;
       outline-offset: 3px !important;
     }
+
+    /* High Contrast Theme (WCAG AAA 7:1+ Contrast) */
+    body.high-contrast {
+      background-color: #000000 !important;
+      color: #ffff00 !important;
+    }
+    body.high-contrast header,
+    body.high-contrast footer,
+    body.high-contrast section,
+    body.high-contrast article,
+    body.high-contrast div.card,
+    body.high-contrast .bg-white,
+    body.high-contrast .bg-slate-100,
+    body.high-contrast .bg-blue-50,
+    body.high-contrast .bg-green-50,
+    body.high-contrast .bg-amber-50,
+    body.high-contrast .bg-indigo-50 {
+      background-color: #0a0a0a !important;
+      color: #ffffff !important;
+      border-color: #ffff00 !important;
+    }
+    body.high-contrast button {
+      background-color: #000000 !important;
+      color: #ffff00 !important;
+      border: 3px solid #ffff00 !important;
+    }
+    body.high-contrast button:hover,
+    body.high-contrast button:focus {
+      background-color: #ffff00 !important;
+      color: #000000 !important;
+    }
+    body.high-contrast input {
+      background-color: #000000 !important;
+      color: #ffff00 !important;
+      border-color: #ffff00 !important;
+    }
+    body.high-contrast .text-slate-600,
+    body.high-contrast .text-slate-700,
+    body.high-contrast .text-slate-800,
+    body.high-contrast .text-slate-900,
+    body.high-contrast .text-blue-900,
+    body.high-contrast .text-blue-950 {
+      color: #ffffff !important;
+    }
+
+    /* Accessibility: Skip Links */
+    .skip-link {
+      position: absolute;
+      top: -60px;
+      left: 12px;
+      background: #0284c7;
+      color: #ffffff;
+      padding: 12px 24px;
+      font-weight: bold;
+      font-size: 1.25rem;
+      border-radius: 8px;
+      z-index: 1000;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus {
+      top: 12px;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-900 font-sans min-h-screen antialiased flex flex-col">
+<body id="app-body" class="bg-slate-100 text-slate-900 font-sans min-h-screen antialiased flex flex-col transition-colors">
+
+  <!-- WCAG Skip to Main Content Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Top Accessibility Toolbar for Seniors -->
+  <nav aria-label="Senior Accessibility Toolbar" class="bg-slate-900 text-white px-4 sm:px-8 py-3 border-b-2 border-slate-700 flex flex-wrap items-center justify-between gap-3 text-base sm:text-lg">
+    <div class="flex items-center gap-2">
+      <span class="text-xl" aria-hidden="true">👓</span>
+      <span class="font-bold">Senior Accessibility Controls:</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Text Size Scaling -->
+      <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700" role="group" aria-label="Text Size Controls">
+        <button type="button" id="btn-font-dec" aria-label="Decrease text size" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded font-bold text-lg">A-</button>
+        <button type="button" id="btn-font-reset" aria-label="Reset text size to standard" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded font-bold text-lg">A</button>
+        <button type="button" id="btn-font-inc" aria-label="Increase text size" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded font-bold text-xl">A+</button>
+      </div>
+
+      <!-- High Contrast Toggle -->
+      <button type="button" id="btn-high-contrast" aria-pressed="false" class="bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold px-4 py-2 rounded-lg flex items-center gap-2 border-2 border-amber-500 shadow-sm transition">
+        <span aria-hidden="true">🌓</span>
+        <span>High Contrast (AAA)</span>
+      </button>
+
+      <!-- Global Stop Speech Button -->
+      <button type="button" id="btn-stop-speech" aria-label="Stop reading aloud" class="bg-slate-700 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-lg flex items-center gap-1 border border-slate-600 transition">
+        <span aria-hidden="true">⏹️</span>
+        <span>Stop Voice</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- Accessible Header / Navbar -->
   <header class="bg-blue-900 text-white shadow-md border-b-4 border-blue-700 py-6 px-6 sm:px-12">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <span class="text-4xl" role="img" aria-label="Medicine icon">💊</span>
+      <div class="flex items-center gap-4">
+        <span class="text-5xl" role="img" aria-label="Medicine capsule icon">💊</span>
         <div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">CareSync AI</h1>
-          <p class="text-blue-200 text-lg sm:text-xl font-medium">Elderly Care & Medication Companion</p>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">CareSync AI</h1>
+          <p class="text-blue-200 text-lg sm:text-2xl font-medium mt-1">Elderly Care & Medication Management Platform</p>
         </div>
       </div>
-      <div id="user-status-pill" class="bg-blue-800 border-2 border-blue-600 rounded-full px-5 py-2 text-lg font-semibold flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded-full bg-amber-400" id="status-dot"></span>
+      <div id="user-status-pill" class="bg-blue-800 border-2 border-blue-600 rounded-full px-5 py-2.5 text-lg font-semibold flex items-center gap-3">
+        <span class="w-4 h-4 rounded-full bg-amber-400" id="status-dot"></span>
         <span id="auth-status-text">Passcode Required</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-10">
+  <!-- Live Announcer for Screen Readers -->
+  <div id="sr-announcer" class="sr-only" aria-live="polite" role="status"></div>
 
-    <!-- Section 1: Passcode Login (Senior-friendly, Large Buttons) -->
+  <!-- Main Container -->
+  <main id="main-content" class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-10">
+
+    <!-- Section 1: Senior Passcode Login -->
     <section id="login-section" class="bg-white rounded-2xl shadow-lg border-2 border-slate-300 p-6 sm:p-10 transition-all" aria-labelledby="login-heading">
       <div class="max-w-xl mx-auto text-center">
         <div class="text-5xl mb-3" role="img" aria-label="Key icon">🔑</div>
@@ -83,77 +189,47 @@
     <!-- Main Content Area (Protected after login) -->
     <div id="dashboard-content" class="space-y-10">
 
-      <!-- Section 2: Today's Medication Schedule -->
-      <section class="bg-white rounded-2xl shadow-lg border-2 border-slate-300 p-6 sm:p-10" aria-labelledby="schedule-heading">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b-2 border-slate-200 gap-4">
+      <!-- Section 2: Adherence Dashboard with Progress Bar -->
+      <section class="bg-white rounded-2xl shadow-lg border-2 border-slate-300 p-6 sm:p-10" aria-labelledby="adherence-heading">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b-2 border-slate-200 gap-4">
           <div>
-            <h2 id="schedule-heading" class="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-3">
-              <span>📅</span> Today's Medication Schedule
+            <h2 id="adherence-heading" class="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-3">
+              <span>📊</span> Today's Adherence & Daily Schedule
             </h2>
-            <p class="text-xl text-slate-600 mt-1 font-medium">Keep track of doses taken or upcoming today</p>
+            <p class="text-xl text-slate-600 mt-1 font-medium">Clear morning, afternoon, evening, and night time-slots</p>
           </div>
-          <span class="bg-blue-100 text-blue-900 border border-blue-300 text-lg sm:text-xl font-bold px-4 py-2 rounded-xl self-start sm:self-auto">
-            3 Scheduled Today
-          </span>
+          <!-- Live Adherence Metric -->
+          <div class="bg-blue-50 border-2 border-blue-300 rounded-xl px-5 py-3 text-right">
+            <span class="text-base text-slate-600 font-bold block uppercase tracking-wider">Adherence Rate</span>
+            <span id="adherence-pct" class="text-3xl font-extrabold text-blue-900">0%</span>
+          </div>
         </div>
 
-        <!-- Schedule Items List -->
-        <div id="schedule-list" class="mt-8 space-y-5">
-          <!-- Item 1: Morning -->
-          <article class="flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-2xl border-4 border-green-500 bg-green-50 gap-4">
-            <div class="flex items-center gap-5">
-              <span class="text-5xl" role="img" aria-label="Sun icon">🌅</span>
-              <div>
-                <span class="inline-block bg-green-700 text-white text-sm font-bold uppercase tracking-wider px-3 py-1 rounded-md mb-1">Morning • 08:00 AM</span>
-                <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Metformin (500mg)</h3>
-                <p class="text-xl text-slate-700 font-medium">Take 1 tablet with breakfast and water.</p>
-              </div>
-            </div>
-            <button type="button" class="taken-toggle-btn w-full md:w-auto bg-green-700 hover:bg-green-800 text-white text-xl font-bold py-4 px-8 rounded-xl shadow-md transition transform active:scale-95" aria-label="Mark Metformin as taken">
-              ✓ Taken
-            </button>
-          </article>
+        <!-- Adherence Progress Bar -->
+        <div class="mt-6">
+          <div class="flex justify-between text-base font-bold text-slate-700 mb-2">
+            <span id="adherence-count-label">0 of 0 doses taken</span>
+            <span id="adherence-status-pill" class="text-blue-700 font-extrabold">In Progress</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-6 overflow-hidden border-2 border-slate-300" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="adherence-progressbar">
+            <div id="adherence-progress-fill" class="bg-green-600 h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+          </div>
+        </div>
 
-          <!-- Item 2: Afternoon -->
-          <article class="flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-2xl border-4 border-amber-400 bg-amber-50 gap-4">
-            <div class="flex items-center gap-5">
-              <span class="text-5xl" role="img" aria-label="Sun icon">☀️</span>
-              <div>
-                <span class="inline-block bg-amber-700 text-white text-sm font-bold uppercase tracking-wider px-3 py-1 rounded-md mb-1">Afternoon • 01:00 PM</span>
-                <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Lisinopril (10mg)</h3>
-                <p class="text-xl text-slate-700 font-medium">Take 1 tablet after lunch.</p>
-              </div>
-            </div>
-            <button type="button" class="taken-toggle-btn w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xl font-bold py-4 px-8 rounded-xl shadow-md transition transform active:scale-95" aria-label="Mark Lisinopril as taken">
-              Mark as Taken
-            </button>
-          </article>
-
-          <!-- Item 3: Evening -->
-          <article class="flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-2xl border-4 border-indigo-400 bg-indigo-50 gap-4">
-            <div class="flex items-center gap-5">
-              <span class="text-5xl" role="img" aria-label="Moon icon">🌙</span>
-              <div>
-                <span class="inline-block bg-indigo-700 text-white text-sm font-bold uppercase tracking-wider px-3 py-1 rounded-md mb-1">Night • 09:00 PM</span>
-                <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Atorvastatin (20mg)</h3>
-                <p class="text-xl text-slate-700 font-medium">Take 1 tablet before bedtime.</p>
-              </div>
-            </div>
-            <button type="button" class="taken-toggle-btn w-full md:w-auto bg-slate-700 hover:bg-slate-800 text-white text-xl font-bold py-4 px-8 rounded-xl shadow-md transition transform active:scale-95" aria-label="Mark Atorvastatin as taken">
-              Upcoming
-            </button>
-          </article>
+        <!-- Time Slots Container -->
+        <div id="schedule-slots-container" class="mt-8 space-y-6">
+          <!-- Populated dynamically via app.js using safe DOM APIs -->
         </div>
       </section>
 
-      <!-- Section 3: Smart OCR Scanner (Elderly Friendly File & Camera Upload) -->
+      <!-- Section 3: Smart OCR Scanner with Client Compression & Voice -->
       <section class="bg-white rounded-2xl shadow-lg border-2 border-slate-300 p-6 sm:p-10" aria-labelledby="ocr-heading">
         <div>
           <h2 id="ocr-heading" class="text-3xl sm:text-4xl font-extrabold text-slate-900 flex items-center gap-3">
             <span>📷</span> Smart OCR Medication Scanner
           </h2>
           <p class="text-xl text-slate-600 mt-2 font-medium">
-            Take a clear photo or upload an image of your medicine strip or box. Our Gemini AI will read the medication name and recommended dosage for you!
+            Take a clear photo or upload an image of your medication strip or bottle. Gemini AI will extract the medicine name, dosage, and screen for interactions!
           </p>
         </div>
 
@@ -165,13 +241,13 @@
               Select or Take Photo of Medication Strip
             </span>
             <span class="text-lg sm:text-xl text-slate-600 font-medium block">
-              Supports JPEG, PNG, WEBP files
+              Images are automatically compressed client-side for ultra-fast upload
             </span>
             <input 
               type="file" 
               id="medication-file-input" 
               name="file" 
-              accept="image/*" 
+              accept="image/jpeg,image/png,image/webp" 
               capture="environment"
               class="sr-only" 
             />
@@ -197,12 +273,30 @@
 
         <!-- Dynamic Results Container -->
         <div id="scan-result-card" class="hidden mt-8 p-6 sm:p-8 rounded-2xl border-4 border-blue-500 bg-blue-50 shadow-md transition" aria-live="polite">
-          <div class="flex items-center gap-3 border-b-2 border-blue-200 pb-4 mb-4">
-            <span class="text-4xl">✅</span>
-            <h3 class="text-3xl font-extrabold text-blue-950">Medication Details Extracted</h3>
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-blue-200 pb-4 mb-4 gap-3">
+            <div class="flex items-center gap-3">
+              <span class="text-4xl" aria-hidden="true">✅</span>
+              <h3 class="text-3xl font-extrabold text-blue-950">Medication Details Extracted</h3>
+            </div>
+            <!-- Voice Read Aloud Button -->
+            <button type="button" id="btn-speak-scan" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-lg py-3 px-5 rounded-xl flex items-center gap-2 shadow self-start sm:self-auto">
+              <span>🔊</span>
+              <span>Listen to Instructions</span>
+            </button>
           </div>
 
-          <dl class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900">
+          <!-- Automatic Drug Interaction Banner -->
+          <div id="interaction-banner" class="hidden my-4 p-5 rounded-xl border-4 flex flex-col gap-2" role="alert">
+            <div class="flex items-center gap-3">
+              <span id="interaction-icon" class="text-3xl">🛡️</span>
+              <h4 id="interaction-title" class="text-2xl font-extrabold">Drug Interaction Safety Check</h4>
+            </div>
+            <p id="interaction-summary" class="text-lg font-bold mt-1"></p>
+            <p id="interaction-rec" class="text-base font-medium text-slate-800"></p>
+          </div>
+
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900 mt-4">
             <div class="bg-white p-5 rounded-xl border-2 border-slate-200">
               <dt class="text-lg font-bold text-slate-500 uppercase tracking-wide">Medication Name</dt>
               <dd id="result-med-name" class="text-3xl font-extrabold text-blue-900 mt-1">--</dd>
@@ -226,6 +320,52 @@
             <button type="button" id="btn-dismiss-result" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xl font-bold py-4 px-6 rounded-xl">
               Dismiss
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Caregiver Family Safety & Emergency Alert Panel -->
+      <section class="bg-white rounded-2xl shadow-lg border-2 border-slate-300 p-6 sm:p-10" aria-labelledby="caregiver-heading">
+        <div class="flex items-center gap-3 pb-4 border-b-2 border-slate-200">
+          <span class="text-4xl" aria-hidden="true">🤝</span>
+          <div>
+            <h2 id="caregiver-heading" class="text-3xl sm:text-4xl font-extrabold text-slate-900">Caregiver Family Safety Panel</h2>
+            <p class="text-xl text-slate-600 mt-1 font-medium">Keep loved ones and caregivers notified in real time</p>
+          </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-50 p-6 rounded-xl border-2 border-slate-200">
+            <label for="input-caregiver-email" class="block text-lg font-bold text-slate-800 mb-2">Primary Caregiver Email Address</label>
+            <input 
+              type="email" 
+              id="input-caregiver-email" 
+              placeholder="caregiver@family.org"
+              class="w-full text-xl p-4 bg-white border-2 border-slate-300 rounded-xl font-medium text-slate-900 focus:border-blue-600 mb-4"
+            />
+            <button type="button" id="btn-save-caregiver" class="bg-blue-700 hover:bg-blue-800 text-white font-bold text-lg py-3 px-6 rounded-xl shadow transition">
+              💾 Save Caregiver Contact
+            </button>
+            <span id="caregiver-save-feedback" class="ml-3 font-bold text-green-700" aria-live="polite"></span>
+          </div>
+
+          <div class="bg-red-50 p-6 rounded-xl border-2 border-red-300 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl font-extrabold text-red-900 flex items-center gap-2">
+                <span>🚨</span> Urgent Family Notifications
+              </h3>
+              <p class="text-lg text-slate-700 font-medium mt-1">
+                Instantly dispatch a high-priority alert email to the caregiver regarding a missed dose or emergency.
+              </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+              <button type="button" id="btn-alert-missed" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-lg py-3 px-4 rounded-xl shadow transition flex-1">
+                ⚠️ Notify Missed Dose
+              </button>
+              <button type="button" id="btn-alert-sos" class="bg-red-700 hover:bg-red-800 text-white font-bold text-lg py-3 px-4 rounded-xl shadow transition flex-1">
+                🚨 Emergency SOS Alert
+              </button>
+            </div>
           </div>
         </div>
       </section>
