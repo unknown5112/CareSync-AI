@@ -21,6 +21,7 @@ const btnClear = document.getElementById("btn-clear");
 const btnSubmitPin = document.getElementById("btn-submit-pin");
 const loginFeedback = document.getElementById("login-feedback");
 const loginSection = document.getElementById("login-section");
+const mainAppContent = document.getElementById("main-app-content");
 const userStatusPill = document.getElementById("user-status-pill");
 const authStatusText = document.getElementById("auth-status-text");
 const statusDot = document.getElementById("status-dot");
@@ -201,8 +202,14 @@ function verifyPin() {
 
     announceToScreenReader("Access Granted. Showing your medication schedule.");
     setTimeout(() => {
+      loginSection.style.display = "none";
       loginSection.classList.add("hidden");
-    }, 500);
+      if (mainAppContent) {
+        mainAppContent.style.display = "block";
+        mainAppContent.classList.remove("hidden");
+      }
+      renderSchedule();
+    }, 400);
   } else {
     loginFeedback.textContent = "❌ Please enter your 4-digit code (Default: 1234).";
     loginFeedback.className = "text-xl font-bold text-red-600 min-h-[2rem]";
