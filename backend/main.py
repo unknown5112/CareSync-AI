@@ -1,9 +1,11 @@
 import os
 from typing import Any, Dict
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, UploadFile, status
+from fastapi import FastAPI, File, UploadFile, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from backend.utils.ai_scanner import scan_medication_strip
 
 # Load environment variables from .env
 load_dotenv()
@@ -45,15 +47,35 @@ async def scan_medication(
     file: UploadFile = File(..., description="Image file of the medication packaging or strip")
 ) -> Dict[str, Any]:
     """
-    Skeleton route for medication strip OCR and information extraction.
-    Will process medication strip images using the Gemini AI scanner module.
+    Route for medication strip OCR and information extraction using Gemini AI.
     """
-    return {
-        "status": "success",
-        "message": "Medication scan endpoint skeleton ready",
-        "filename": file.filename,
-        "content_type": file.content_type,
-    }
+    try:
+        image_bytes = await file.read()
+        mime_type = file.content_type or "image/jpeg"
+
+        # Check if GEMINI_API_KEY is configured
+        if os.getenv("GEMINI_API_KEY"):
+            scan_result = scan_medication_strip(image_bytes, mime_type=mime_type)
+        else:
+            # Informative fallback if key has not been added yet in local development
+            scan_result = {
+                "medication_name": "Atorvastatin Calcium (Demo)",
+                "suggested_dosage": "1 tablet daily at bedtime (10mg)",
+                "strength": "10 mg",
+                "instructions": "Take with water after dinner. Demo response - configure GEMINI_API_KEY in .env for live AI extraction.",
+                "confidence": "high",
+            }
+
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "data": scan_result,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing medication scan: {str(e)}",
+        )
 
 
 if __name__ == "__main__":
