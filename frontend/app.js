@@ -77,6 +77,11 @@ const DEFAULT_SCHEDULE = [
 // ==========================================
 // 1. Storage & Offline-First State Handling
 // ==========================================
+
+/**
+ * Retrieves cached prescription schedule from localStorage.
+ * @returns {Array<Object>} List of schedule item objects.
+ */
 function getStoredSchedule() {
   try {
     const raw = localStorage.getItem("caresync_schedule");
@@ -86,6 +91,10 @@ function getStoredSchedule() {
   }
 }
 
+/**
+ * Persists updated schedule array to localStorage.
+ * @param {Array<Object>} schedule - Schedule objects list.
+ */
 function saveStoredSchedule(schedule) {
   try {
     localStorage.setItem("caresync_schedule", JSON.stringify(schedule));
@@ -94,10 +103,18 @@ function saveStoredSchedule(schedule) {
   }
 }
 
+/**
+ * Retrieves configured caregiver email from storage.
+ * @returns {string} Caregiver email address.
+ */
 function getStoredCaregiverEmail() {
   return localStorage.getItem("caresync_caregiver_email") || "";
 }
 
+/**
+ * Announces dynamic status message to assistive screen readers.
+ * @param {string} message - Message to vocalize for screen readers.
+ */
 function announceToScreenReader(message) {
   if (srAnnouncer) {
     srAnnouncer.textContent = "";
@@ -110,14 +127,19 @@ function announceToScreenReader(message) {
 // ==========================================
 // 2. Web Speech API (Calm Elderly Voice Rate)
 // ==========================================
+
+/**
+ * Synthesizes voice audio at a calm 0.88x rate for geriatric users.
+ * @param {string} text - Text to be read aloud.
+ */
 function speakText(text) {
   if (!speechSynth) {
     alert("Speech Synthesis is not supported in this browser.");
     return;
   }
-  speechSynth.cancel(); // Stop any ongoing speech
+  speechSynth.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.88; // Calm, deliberate pace for elderly listeners
+  utterance.rate = 0.88;
   utterance.pitch = 1.0;
   speechSynth.speak(utterance);
 }
@@ -188,10 +210,16 @@ btnClear.addEventListener("click", () => {
 
 btnSubmitPin.addEventListener("click", verifyPin);
 
+/**
+ * Updates the masked passcode input UI.
+ */
 function updatePinDisplay() {
   passcodeInput.value = enteredPin ? "•".repeat(enteredPin.length) : "";
 }
 
+/**
+ * Validates the senior 4-digit PIN and unlocks the protected dashboard.
+ */
 function verifyPin() {
   if (enteredPin === "1234" || enteredPin.length === 4) {
     loginFeedback.textContent = "✅ Access Granted! Welcome to CareSync AI.";
@@ -220,9 +248,12 @@ function verifyPin() {
 // ==========================================
 // 5. Adherence Dashboard & Dynamic Schedule (Zero innerHTML)
 // ==========================================
+
+/**
+ * Renders the daily medication schedule and adherence statistics using safe DOM APIs.
+ */
 function renderSchedule() {
   const schedule = getStoredSchedule();
-  // Clear container using safe DOM methods
   while (scheduleSlotsContainer.firstChild) {
     scheduleSlotsContainer.removeChild(scheduleSlotsContainer.firstChild);
   }
@@ -274,7 +305,7 @@ function renderSchedule() {
     const actionDiv = document.createElement("div");
     actionDiv.className = "flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto";
 
-    // Voice button for card
+    // Voice read-aloud button for card
     const speakBtn = document.createElement("button");
     speakBtn.type = "button";
     speakBtn.className = "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-base flex items-center gap-2";
@@ -325,6 +356,14 @@ function renderSchedule() {
 // ==========================================
 // 6. Client-Side Image Compression (<canvas>)
 // ==========================================
+
+/**
+ * Compresses an image file in-memory using an HTML5 offscreen canvas.
+ * @param {File} file - Uploaded raw image file.
+ * @param {number} maxDimension - Max bounding box width/height in px.
+ * @param {number} quality - JPEG compression quality (0.0 to 1.0).
+ * @returns {Promise<Blob>} Compressed image binary blob.
+ */
 async function compressImage(file, maxDimension = 1024, quality = 0.8) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -373,6 +412,14 @@ async function compressImage(file, maxDimension = 1024, quality = 0.8) {
 // ==========================================
 // 7. Robust Fetch with AbortController Timeout
 // ==========================================
+
+/**
+ * Wraps fetch() with an AbortController timeout to handle cold-starts.
+ * @param {string} url - Target URL.
+ * @param {Object} options - Fetch options.
+ * @param {number} timeoutMs - Timeout duration in milliseconds.
+ * @returns {Promise<Response>} HTTP Response promise.
+ */
 async function fetchWithTimeout(url, options = {}, timeoutMs = 45000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -459,13 +506,16 @@ ocrForm.addEventListener("submit", async (e) => {
   }
 });
 
+/**
+ * Safely populates scanned clinical details onto the DOM without innerHTML.
+ * @param {Object} result - JSON response payload from scan endpoint.
+ */
 async function displayScanResult(result) {
   const data = result.data || {};
   const medName = data.medication_name || "Unknown Medication";
   const dosage = data.suggested_dosage || data.strength || "Dosage as advised by doctor";
   const instructions = data.instructions || "Follow prescription guidelines and consult healthcare provider.";
 
-  // Safe DOM text assignment (zero XSS vulnerability)
   resultMedName.textContent = medName;
   resultDosage.textContent = dosage;
   resultInstructions.textContent = instructions;
@@ -475,16 +525,17 @@ async function displayScanResult(result) {
 
   announceToScreenReader(`Medication scanned: ${medName}. Dosage: ${dosage}.`);
 
-  // Wire Voice Read-Aloud for scanned result
   btnSpeakScan.onclick = () => {
     speakText(`Medication identified: ${medName}. Recommended dosage: ${dosage}. Instructions: ${instructions}.`);
   };
 
-  // Automated Drug Interaction Check against current schedule
   checkDrugInteractions(medName);
 }
 
-// Automated Drug-Drug Interaction Safety Screening
+/**
+ * Evaluates candidate medicine against the active prescription list via backend API.
+ * @param {string} newMedName - Scanned medicine name.
+ */
 async function checkDrugInteractions(newMedName) {
   const currentSchedule = getStoredSchedule();
   const currentMeds = currentSchedule.map((m) => m.name);
@@ -513,11 +564,13 @@ async function checkDrugInteractions(newMedName) {
   }
 }
 
+/**
+ * Renders the clinical safety interaction banner on the DOM.
+ * @param {Object} result - Interaction analysis response object.
+ */
 function displayInteractionBanner(result) {
   const severity = (result.severity || "safe").toLowerCase();
   interactionBanner.classList.remove("hidden");
-
-  // Reset classes
   interactionBanner.className = "my-4 p-5 rounded-xl border-4 flex flex-col gap-2 shadow";
 
   if (severity === "danger") {
@@ -537,7 +590,6 @@ function displayInteractionBanner(result) {
   interactionSummary.textContent = result.summary || "No severe adverse reaction identified.";
   interactionRec.textContent = `Doctor Recommendation: ${result.recommendation || "Verify with doctor."}`;
 
-  // Voice announcement of interaction result
   const speechMessage = `Safety Screening Result: ${result.summary}. Recommendation: ${result.recommendation}`;
   announceToScreenReader(speechMessage);
 }
@@ -547,7 +599,6 @@ btnDismissResult.addEventListener("click", () => {
   interactionBanner.classList.add("hidden");
 });
 
-// Add scanned medication to active schedule
 btnAddToSchedule.addEventListener("click", () => {
   const medName = resultMedName.textContent;
   const dosage = resultDosage.textContent;
@@ -601,6 +652,11 @@ btnAlertSos.addEventListener("click", () => {
   dispatchCaregiverAlert("sos", "Urgent SOS button pressed by patient on dashboard.");
 });
 
+/**
+ * Dispatches an automated urgent caregiver alert via backend email service.
+ * @param {string} alertType - 'missed_dose' or 'sos'.
+ * @param {string} defaultDetails - Explanatory context string.
+ */
 async function dispatchCaregiverAlert(alertType, defaultDetails) {
   const email = inputCaregiverEmail.value.trim();
   if (!email || !email.includes("@")) {
