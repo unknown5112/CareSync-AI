@@ -28,8 +28,8 @@ def scan_medication_strip(
 ) -> Dict[str, Any]:
     """
     Extracts medication name, suggested dosage, and essential details
-    from an image of a medication strip or packaging using the Gemini Vision API.
-    Opens the image using Pillow (PIL.Image) and initializes model as 'gemini-1.5-flash'.
+    from an image of a medication strip or packaging using a sequence of Gemini models.
+    Opens the image using Pillow (PIL.Image) and iterates through fallback models.
     """
     try:
         get_gemini_client()
@@ -46,9 +46,6 @@ def scan_medication_strip(
         if img.mode not in ("RGB", "L"):
             img = img.convert("RGB")
 
-        # Initialize model strictly as gemini-1.5-flash
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
         prompt = (
             "You are an expert medical AI assistant specialized in reading medication packaging, strips, and prescription bottles. "
             "Analyze this medication image carefully.\n\n"
@@ -63,10 +60,42 @@ def scan_medication_strip(
             "Do not include markdown blocks, introductory words, or explanations outside the JSON."
         )
 
-        response = model.generate_content([prompt, img])
+        # Fallback sequence of models
+        models_to_try = [
+            'gemini-3.1-flash-lite',
+            'gemini-3.7-flash',
+            'gemini-omni-flash-preview',
+            'gemini-3.8-flash',
+        ]
+
+        response = None
+        last_exception = None
+
+        for model_name in models_to_try:
+            try:
+                print(f"[AI Scanner] Attempting vision generation with model: {model_name}")
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content([prompt, img])
+                if response and hasattr(response, "text") and response.text:
+                    print(f"[AI Scanner] Success with model: {model_name}")
+                    break
+            except Exception as err:
+                err_str = str(err).lower()
+                last_exception = err
+                print(f"[AI Scanner] Model {model_name} failed: {err}")
+                # If it's a 404, not found, or unsupported model error, continue to next model
+                if "404" in err_str or "not found" in err_str or "notfound" in err_str:
+                    continue
+                else:
+                    # Continue trying the user-specified sequence
+                    continue
 
         if not response or not hasattr(response, "text") or not response.text:
-            raise RuntimeError("Gemini API returned an empty or invalid response.")
+            if last_exception:
+                raise RuntimeError(
+                    f"All Gemini models in fallback sequence failed. Last error: {str(last_exception)}"
+                ) from last_exception
+            raise RuntimeError("Gemini API returned an empty or invalid response from all models.")
 
         text_output = response.text.strip()
 
