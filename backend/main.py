@@ -1,4 +1,5 @@
 import os
+import traceback
 from typing import Any, Dict
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, status, HTTPException
@@ -48,7 +49,7 @@ async def scan_medication(
 ) -> Dict[str, Any]:
     """
     Route for medication strip OCR and information extraction using Gemini Vision API.
-    Calls Gemini model directly and raises HTTP 500 on failure without mock fallbacks.
+    Opens image via Pillow and passes image object directly to Gemini.
     """
     try:
         image_bytes = await file.read()
@@ -62,6 +63,8 @@ async def scan_medication(
             "data": scan_result,
         }
     except Exception as e:
+        print("[POST /api/scan-medication] Exception encountered:")
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Gemini AI medication scan failed: {str(e)}",
