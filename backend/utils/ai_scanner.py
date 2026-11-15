@@ -29,7 +29,7 @@ def scan_medication_strip(
     """
     Extracts medication name, suggested dosage, and essential details
     from an image of a medication strip or packaging using the Gemini Vision API.
-    Opens the image using Pillow (PIL.Image) before sending it to Gemini.
+    Opens the image using Pillow (PIL.Image) and initializes model as 'gemini-1.5-flash'.
     """
     try:
         get_gemini_client()
@@ -46,12 +46,8 @@ def scan_medication_strip(
         if img.mode not in ("RGB", "L"):
             img = img.convert("RGB")
 
-        # In google-generativeai==0.3.1, gemini-pro-vision is the supported multimodal vision model name
-        # We can also attempt gemini-1.5-flash if available on the account
-        try:
-            model = genai.GenerativeModel("gemini-1.5-flash")
-        except Exception:
-            model = genai.GenerativeModel("gemini-pro-vision")
+        # Initialize model strictly as gemini-1.5-flash
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
         prompt = (
             "You are an expert medical AI assistant specialized in reading medication packaging, strips, and prescription bottles. "
@@ -67,13 +63,7 @@ def scan_medication_strip(
             "Do not include markdown blocks, introductory words, or explanations outside the JSON."
         )
 
-        try:
-            response = model.generate_content([prompt, img])
-        except Exception as model_err:
-            # If 1.5-flash fails on older library version, fallback to gemini-pro-vision
-            print(f"[AI Scanner] Primary vision call error: {model_err}. Retrying with gemini-pro-vision...")
-            fallback_model = genai.GenerativeModel("gemini-pro-vision")
-            response = fallback_model.generate_content([prompt, img])
+        response = model.generate_content([prompt, img])
 
         if not response or not hasattr(response, "text") or not response.text:
             raise RuntimeError("Gemini API returned an empty or invalid response.")
