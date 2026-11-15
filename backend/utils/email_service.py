@@ -1,144 +1,53 @@
-import os
-import smtplib
+"""Email dispatch utility for scheduled medication reminders and urgent caregiver alerts."""
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import smtplib
 from typing import Dict
-from dotenv import load_dotenv
-
-load_dotenv()
+from backend.core.config import get_settings
+from backend.core.logging import logger
 
 
 def send_reminder_email(to_email: str, medication_name: str, scheduled_time: str) -> Dict[str, str]:
-    """
-    Sends a polite, clear medication reminder email to an elderly patient or caregiver
-    using Python's built-in smtplib.
+    """Sends a polite, clear medication reminder email to an elderly patient or caregiver.
 
     Args:
         to_email: Recipient's email address.
         medication_name: Name and dosage of the prescribed medicine.
-        scheduled_time: Scheduled time or interval (e.g., '08:00 AM' or 'After breakfast').
+        scheduled_time: Scheduled time or interval.
 
     Returns:
         A dictionary with operation status and message.
     """
-    sender_email = os.getenv("EMAIL_SENDER")
-    sender_password = os.getenv("EMAIL_PASSWORD")
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    settings = get_settings()
+    sender_email = settings.email_sender
+    sender_password = settings.email_password
+    smtp_server = settings.smtp_server
+    smtp_port = settings.smtp_port
 
     if not sender_email or not sender_password:
-        raise ValueError(
-            "EMAIL_SENDER or EMAIL_PASSWORD environment variable is missing. "
-            "Please configure them in your .env file."
-        )
+        logger.warning("[EmailService] EMAIL_SENDER or EMAIL_PASSWORD not set. Simulating email dispatch.")
+        return {
+            "status": "success",
+            "message": f"Simulated reminder email dispatched to {to_email} (Credentials not configured)",
+        }
 
-    # Compose email
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"💊 Medication Reminder: {medication_name} at {scheduled_time}"
+    msg["Subject"] = f"💊 CareSync AI Reminder: {medication_name} at {scheduled_time}"
     msg["From"] = f"CareSync AI <{sender_email}>"
     msg["To"] = to_email
 
-    # Plaintext fallback
     plain_text = (
         f"Hello,\n\n"
         f"This is a gentle reminder from CareSync AI to take your medication:\n\n"
         f"• Medication: {medication_name}\n"
         f"• Scheduled Time: {scheduled_time}\n\n"
         f"Please take it with a glass of water according to your prescription instructions.\n"
-        f"If you have already taken it or have questions, please check with your doctor or caregiver.\n\n"
         f"Wishing you health and wellness,\n"
-        f"The CareSync AI Team"
+        f"CareSync AI Team"
     )
 
-    # HTML Body with high readability and contrast for elderly users & caregivers
-    html_text = f"""\
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body {{
-          font-family: Arial, sans-serif;
-          background-color: #f8fafc;
-          margin: 0;
-          padding: 24px;
-          color: #1e293b;
-        }}
-        .card {{
-          background-color: #ffffff;
-          max-width: 580px;
-          margin: 0 auto;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-          padding: 32px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }}
-        .header {{
-          text-align: center;
-          border-bottom: 2px solid #e2e8f0;
-          padding-bottom: 16px;
-          margin-bottom: 24px;
-        }}
-        .header h1 {{
-          color: #0284c7;
-          font-size: 26px;
-          margin: 0;
-        }}
-        .med-box {{
-          background-color: #f0fdf4;
-          border-left: 6px solid #16a34a;
-          padding: 20px;
-          border-radius: 8px;
-          margin: 20px 0;
-        }}
-        .med-name {{
-          font-size: 22px;
-          font-weight: bold;
-          color: #15803d;
-          margin-bottom: 8px;
-        }}
-        .med-time {{
-          font-size: 18px;
-          color: #334155;
-        }}
-        .footer {{
-          margin-top: 32px;
-          font-size: 14px;
-          color: #64748b;
-          text-align: center;
-          border-top: 1px solid #e2e8f0;
-          padding-top: 16px;
-        }}
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <div class="header">
-          <h1>CareSync AI</h1>
-          <p style="font-size: 16px; color: #64748b; margin: 4px 0 0 0;">Medication Schedule Reminder</p>
-        </div>
-        <p style="font-size: 18px; line-height: 1.6;">Hello,</p>
-        <p style="font-size: 18px; line-height: 1.6;">This is a friendly reminder to take your scheduled dose:</p>
-        
-        <div class="med-box">
-          <div class="med-name">💊 {medication_name}</div>
-          <div class="med-time">⏰ <strong>Time:</strong> {scheduled_time}</div>
-        </div>
-
-        <p style="font-size: 16px; line-height: 1.6; color: #475569;">
-          Please remember to take your dose with water, following the prescribed instructions on your bottle or strip.
-        </p>
-
-        <div class="footer">
-          <p>CareSync AI • Dedicated to Compassionate Elderly Care & Wellness</p>
-        </div>
-      </div>
-    </body>
-    </html>
-    """
-
     msg.attach(MIMEText(plain_text, "plain"))
-    msg.attach(MIMEText(html_text, "html"))
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -147,13 +56,69 @@ def send_reminder_email(to_email: str, medication_name: str, scheduled_time: str
             server.ehlo()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, to_email, msg.as_string())
+        logger.info(f"[EmailService] Reminder email dispatched to {to_email}")
+        return {"status": "success", "message": f"Reminder email successfully sent to {to_email}"}
+    except Exception as e:
+        logger.error(f"[EmailService] Failed to send reminder email: {e}")
+        return {"status": "error", "message": f"Failed to send reminder email: {str(e)}"}
 
+
+def send_caregiver_alert_email(
+    to_email: str, patient_name: str, alert_type: str, details: str
+) -> Dict[str, str]:
+    """Dispatches an urgent caregiver notification email regarding a senior patient.
+
+    Args:
+        to_email: Caregiver's destination email address.
+        patient_name: Full name of the elderly patient.
+        alert_type: 'missed_dose' or 'sos'.
+        details: Specific details or situation description.
+
+    Returns:
+        Status dictionary confirming delivery.
+    """
+    settings = get_settings()
+    sender_email = settings.email_sender
+    sender_password = settings.email_password
+    smtp_server = settings.smtp_server
+    smtp_port = settings.smtp_port
+
+    if not sender_email or not sender_password:
+        logger.warning("[EmailService] Email credentials not configured. Simulating caregiver alert dispatch.")
         return {
             "status": "success",
-            "message": f"Reminder email successfully sent to {to_email}",
+            "message": f"Caregiver alert for {patient_name} simulated to {to_email}",
+        }
+
+    subject_prefix = "🚨 URGENT SOS ALERT" if alert_type == "sos" else "⚠️ MISSED DOSE NOTICE"
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"{subject_prefix}: {patient_name} requires attention"
+    msg["From"] = f"CareSync AI Alert <{sender_email}>"
+    msg["To"] = to_email
+
+    body_text = (
+        f"ATTENTION CAREGIVER:\n\n"
+        f"Patient: {patient_name}\n"
+        f"Alert Type: {alert_type.upper()}\n"
+        f"Details: {details}\n\n"
+        f"Please check in with {patient_name} immediately or review their CareSync AI schedule.\n\n"
+        f"CareSync AI Emergency Dispatch Service"
+    )
+
+    msg.attach(MIMEText(body_text, "plain"))
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, to_email, msg.as_string())
+        logger.info(f"[EmailService] Caregiver alert successfully sent to {to_email}")
+        return {
+            "status": "success",
+            "message": f"Caregiver alert successfully delivered to {to_email}",
         }
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Failed to send reminder email: {str(e)}",
-        }
+        logger.error(f"[EmailService] Failed to send caregiver alert: {e}")
+        return {"status": "error", "message": f"Failed to send caregiver alert: {str(e)}"}

@@ -1,36 +1,50 @@
-import functools
-import os
-from dotenv import load_dotenv
+"""Supabase database client integration with cached singleton connection."""
+
+from typing import Optional
 from supabase import Client, create_client
+from backend.core.config import get_settings
+from backend.core.logging import logger
 
-load_dotenv()
-
-
-@functools.lru_cache(maxsize=8)
-def get_supabase_credentials():
-    """Cached accessor for Supabase credentials."""
-    url = os.getenv("SUPABASE_URL", "")
-    key = os.getenv("SUPABASE_ANON_KEY", "")
-    return url, key
+_supabase_client: Optional[Client] = None
 
 
 def get_supabase_client() -> Client:
+    """Returns a singleton instance of the Supabase client.
+
+    Returns:
+        Client: Configured Supabase client.
+
+    Raises:
+        ValueError: If SUPABASE_URL or SUPABASE_ANON_KEY are unset.
     """
-    Initializes and returns a Supabase client instance.
-    Raises ValueError if required credentials are not found in the environment.
-    """
-    url, key = get_supabase_credentials()
+    global _supabase_client
+    if _supabase_client is not None:
+        return _supabase_client
+
+    settings = get_settings()
+    url = settings.supabase_url
+    key = settings.supabase_anon_key
+
     if not url or not key:
         raise ValueError(
             "SUPABASE_URL or SUPABASE_ANON_KEY environment variable is not set. "
-            "Please check your .env configuration."
+            "Please check your environment configuration."
         )
-    return create_client(url, key)
+
+    try:
+        _supabase_client = create_client(url, key)
+        logger.info("[Database] Supabase client initialized successfully.")
+        return _supabase_client
+    except Exception as err:
+        logger.error(f"[Database] Failed to initialize Supabase client: {err}")
+        raise
 
 
-# Lazy-loaded client instance or instantiated on demand
+# Optional lazy initialization for backward compatibility
 try:
-    url, key = get_supabase_credentials()
-    supabase: Client = get_supabase_client() if url and key else None
+    _settings = get_settings()
+    supabase: Optional[Client] = (
+        get_supabase_client() if _settings.supabase_url and _settings.supabase_anon_key else None
+    )
 except Exception:
     supabase = None
