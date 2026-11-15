@@ -1,16 +1,45 @@
-# Python environment and cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
+
+# Virtual environments
 venv/
 env/
-.env
+ENV/
+env.bak/
+venv.bak/
 
-# Supabase and IDE configs
+# Environment configurations and secrets
+.env
+.env.*
+!.env.example
+
+# IDE configurations
 .vscode/
 .idea/
-*.log
+*.swp
+*.swo
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+[Dd]esktop.ini
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+
+# Node / Frontend artifacts (for future frontend build outputs to keep repo lean < 10MB)
+node_modules/
+dist/
+build/
+.next/
+out/
