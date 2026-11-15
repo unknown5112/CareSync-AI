@@ -1,10 +1,7 @@
 // CareSync AI - Frontend Application Logic
 
 // API endpoint configuration
-const API_BASE_URL = window.location.origin.includes(":8000") 
-  ? window.location.origin 
-  : "http://localhost:8000";
-const SCAN_ENDPOINT = `${API_BASE_URL}/api/scan-medication`;
+const SCAN_ENDPOINT = "https://caresync-ai-we1r.onrender.com/api/scan-medication";
 
 // DOM Elements
 const passcodeInput = document.getElementById("passcode-input");
